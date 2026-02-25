@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [develop, main]
+    branches: [main, release]
   pull_request:
-    branches: [develop, main]
+    branches: [main, release]
 
 jobs:
   build-and-test:
@@ -25,7 +25,7 @@ jobs:
 
   e2e:
     name: E2E tests
-    if: github.base_ref == 'main' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    if: github.base_ref == 'release' || (github.event_name == 'push' && github.ref == 'refs/heads/release')
     needs: build-and-test
     runs-on: ubuntu-latest
     steps:

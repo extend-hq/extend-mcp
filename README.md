@@ -15,7 +15,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
   "mcpServers": {
     "extend": {
       "command": "npx",
-      "args": ["-y", "github:extend-hq/extend-mcp"],
+      "args": ["-y", "github:extend-hq/extend-mcp#release"],
       "env": {
         "EXTEND_API_KEY": "xt_your_key_here"
       }
@@ -55,7 +55,7 @@ npm install  # builds automatically
 
 ## Cursor
 
-[Install in Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=extend&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsImdpdGh1YjpleHRlbmQtaHEvZXh0ZW5kLW1jcCJdLCJlbnYiOnsiRVhURU5EX0FQSV9LRVkiOiJ4dF95b3VyX2tleV9oZXJlIn19)
+[Install in Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=extend&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsImdpdGh1YjpleHRlbmQtaHEvZXh0ZW5kLW1jcCNyZWxlYXNlIl0sImVudiI6eyJFWFRFTkRfQVBJX0tFWSI6Inh0X3lvdXJfa2V5X2hlcmUifX0=)
 
 Or add to `.cursor/mcp.json` in your project root manually:
 
@@ -64,7 +64,7 @@ Or add to `.cursor/mcp.json` in your project root manually:
   "mcpServers": {
     "extend": {
       "command": "npx",
-      "args": ["-y", "github:extend-hq/extend-mcp"],
+      "args": ["-y", "github:extend-hq/extend-mcp#release"],
       "env": {
         "EXTEND_API_KEY": "xt_your_key_here"
       }
@@ -80,7 +80,7 @@ Restart Cursor. The Extend tools will be available in Agent mode.
 ## Claude Code
 
 ```bash
-claude mcp add --transport stdio --env EXTEND_API_KEY=xt_your_key_here extend -- npx -y github:extend-hq/extend-mcp
+claude mcp add --transport stdio --env EXTEND_API_KEY=xt_your_key_here extend -- npx -y github:extend-hq/extend-mcp#release
 ```
 
 The Extend tools will be available in your next conversation.
