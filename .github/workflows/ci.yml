@@ -39,3 +39,4 @@ jobs:
       - run: npm test
         env:
           EXTEND_API_KEY: ${{ secrets.EXTEND_API_KEY }}
+          EXTEND_BASE_URL: ${{ secrets.EXTEND_BASE_URL }}
