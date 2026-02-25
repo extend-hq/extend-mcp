@@ -55,7 +55,11 @@ npm install  # builds automatically
 
 ## Cursor
 
-[Install in Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=extend&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsImdpdGh1YjpleHRlbmQtaHEvZXh0ZW5kLW1jcCNyZWxlYXNlIl0sImVudiI6eyJFWFRFTkRfQVBJX0tFWSI6Inh0X3lvdXJfa2V5X2hlcmUifX0=)
+One-click install: paste this in your browser:
+
+```
+cursor://anysphere.cursor-deeplink/mcp/install?name=extend&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsImdpdGh1YjpleHRlbmQtaHEvZXh0ZW5kLW1jcCNyZWxlYXNlIl0sImVudiI6eyJFWFRFTkRfQVBJX0tFWSI6Inh0X3lvdXJfa2V5X2hlcmUifX0=
+```
 
 Or add to `.cursor/mcp.json` in your project root manually:
 
