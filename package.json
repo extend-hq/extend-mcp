@@ -1,0 +1,41 @@
+{
+  "name": "extend-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Extend.ai document intelligence API",
+  "type": "module",
+  "bin": {
+    "extend-mcp": "./build/index.js"
+  },
+  "scripts": {
+    "build": "tsc && chmod 755 build/index.js",
+    "prepare": "npm run build",
+    "start": "node build/index.js",
+    "test": "vitest run"
+  },
+  "files": [
+    "build"
+  ],
+  "keywords": [
+    "mcp",
+    "extend",
+    "extend-ai",
+    "document-processing",
+    "ai",
+    "model-context-protocol"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.0",
+    "extend-ai": "^1.2.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "pdf-lib": "^1.17.1",
+    "typescript": "^5.7.0",
+    "vitest": "^4.0.18"
+  }
+}
