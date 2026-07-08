@@ -81,7 +81,7 @@ export function createServer(config: ServerConfig): McpServer {
     if (!existsSync(abs)) {
       throw new Error(`File not found: ${abs}`);
     }
-    const uploaded = await client.files.upload(createReadStream(abs));
+    const uploaded = await client.files.upload(createReadStream(abs), {});
     return { id: uploaded.id };
   }
 
@@ -102,6 +102,61 @@ export function createServer(config: ServerConfig): McpServer {
     if (params.file_id) return { id: params.file_id };
     if (params.file_text) return { text: params.file_text };
     throw new Error("Provide one of: file_path, file_url, file_id, or file_text");
+  }
+
+  async function binaryFileInput(params: {
+    file_url?: string;
+    file_id?: string;
+    file_path?: string;
+  }): Promise<{ url: string } | { id: string }> {
+    if (params.file_path) {
+      if (!allowFilePath)
+        throw new Error(
+          "file_path is disabled on this server — use file_url or file_id instead",
+        );
+      return uploadLocalFile(params.file_path);
+    }
+    if (params.file_url) return { url: params.file_url };
+    if (params.file_id) return { id: params.file_id };
+    throw new Error("Provide one of: file_path, file_url, or file_id");
+  }
+
+  async function resolveSampleFiles(params: {
+    sample_file_paths?: string[];
+    sample_file_urls?: string[];
+    sample_file_ids?: string[];
+  }): Promise<Array<{ url: string } | { id: string }>> {
+    const files: Array<{ url: string } | { id: string }> = [];
+
+    if (params.sample_file_paths) {
+      if (!allowFilePath)
+        throw new Error(
+          "sample_file_paths is disabled on this server — use sample_file_urls or sample_file_ids instead",
+        );
+      for (const filePath of params.sample_file_paths) {
+        files.push(await uploadLocalFile(filePath));
+      }
+    }
+    if (params.sample_file_urls) {
+      for (const url of params.sample_file_urls) {
+        files.push({ url });
+      }
+    }
+    if (params.sample_file_ids) {
+      for (const id of params.sample_file_ids) {
+        files.push({ id });
+      }
+    }
+
+    if (files.length === 0) {
+      throw new Error(
+        "Provide at least one sample file via sample_file_paths, sample_file_urls, or sample_file_ids",
+      );
+    }
+    if (files.length > 5) {
+      throw new Error("At most 5 sample files are allowed for schema generation");
+    }
+    return files;
   }
 
   function ok(data: unknown) {
@@ -269,6 +324,84 @@ When building an inline config schema, follow these rules:
       async (params) => {
         try {
           const result = await client.extractors.retrieve(params.extractor_id);
+          return ok(result);
+        } catch (error) {
+          return err(error);
+        }
+      },
+    );
+
+    server.tool(
+      "create_extractor",
+      `Create a new extractor in your Extend account. Provide an inline config schema, clone an existing extractor, or auto-generate a schema from sample documents.
+
+Use generate mode when you have example documents but no schema yet. Provide 1-5 sample files plus optional instructions describing the document type and fields to extract. The returned extractor includes the generated schema in its draft config.
+
+Cannot combine generate with config or clone_extractor_id.`,
+      {
+        name: z.string().describe("Name for the new extractor"),
+        clone_extractor_id: z
+          .string()
+          .optional()
+          .describe("Clone an existing extractor by ID (starts with ex_)"),
+        config: z
+          .string()
+          .optional()
+          .describe(
+            'Inline extraction config as JSON string. Example: {"schema":{"type":"object","properties":{"invoice_number":{"type":["string","null"],"description":"The invoice number"}},"required":["invoice_number"]}}',
+          ),
+        generate_instructions: z
+          .string()
+          .optional()
+          .describe(
+            "Instructions for schema generation. Describe the document type, fields to extract, and any rules to follow.",
+          ),
+        ...(allowFilePath
+          ? {
+              sample_file_paths: z
+                .array(z.string())
+                .optional()
+                .describe("Local sample file paths (1-5 total across all sample file params)"),
+            }
+          : {}),
+        sample_file_urls: z
+          .array(z.string().url())
+          .optional()
+          .describe("Public URLs of sample documents (1-5 total across all sample file params)"),
+        sample_file_ids: z
+          .array(z.string())
+          .optional()
+          .describe("Extend file IDs of sample documents (1-5 total across all sample file params)"),
+      },
+      async (params) => {
+        try {
+          const hasGenerateInput =
+            (params.sample_file_paths?.length ?? 0) > 0 ||
+            (params.sample_file_urls?.length ?? 0) > 0 ||
+            (params.sample_file_ids?.length ?? 0) > 0;
+
+          const request: Record<string, unknown> = { name: params.name };
+
+          if (params.clone_extractor_id) {
+            request.cloneExtractorId = params.clone_extractor_id;
+          }
+          if (params.config) {
+            request.config = tryParseJson(params.config);
+          }
+          if (hasGenerateInput) {
+            request.generate = {
+              files: await resolveSampleFiles({
+                sample_file_paths: params.sample_file_paths,
+                sample_file_urls: params.sample_file_urls,
+                sample_file_ids: params.sample_file_ids,
+              }),
+              ...(params.generate_instructions
+                ? { instructions: params.generate_instructions }
+                : {}),
+            };
+          }
+
+          const result = await client.extractors.create(request as any);
           return ok(result);
         } catch (error) {
           return err(error);
@@ -459,6 +592,33 @@ When building an inline config, each splitClassification entry requires exactly 
 
   if (enabledGroups.has("edit")) {
     server.tool(
+      "generate_edit_schema",
+      "Detect fields in a PDF form and return an edit schema payload. Use this before edit_document when you need Extend to bootstrap a form schema from an existing PDF. Returns schema, annotatedSchema, and mappingResult.",
+      {
+        ...filePathParam,
+        file_url: z.string().url().optional().describe("Public URL of the PDF form"),
+        file_id: z.string().optional().describe("Extend file ID (starts with file_)"),
+        config: z
+          .string()
+          .optional()
+          .describe(
+            'Optional generation config as JSON string. Example: {"instructions":"Detect form fields and use human-readable names","advancedOptions":{"radioEnumsEnabled":true}}',
+          ),
+      },
+      async (params) => {
+        try {
+          const result = await client.editSchemas.generate({
+            file: (await binaryFileInput(params)) as any,
+            ...(params.config ? { config: tryParseJson(params.config) as any } : {}),
+          });
+          return ok(result);
+        } catch (error) {
+          return err(error);
+        }
+      },
+    );
+
+    server.tool(
       "edit_document",
       "Edit a PDF document — detect and fill form fields using natural language instructions or explicit field values. Returns the edited PDF file URL.",
       {
@@ -515,7 +675,7 @@ When building an inline config, each splitClassification entry requires exactly 
             if (!existsSync(abs)) {
               throw new Error(`File not found: ${abs}`);
             }
-            const result = await client.files.upload(createReadStream(abs));
+            const result = await client.files.upload(createReadStream(abs), {});
             return ok(result);
           } catch (error) {
             return err(error);

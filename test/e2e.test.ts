@@ -81,8 +81,10 @@ describe("tool discovery", () => {
       const names = tools.map((t) => t.name).sort();
       expect(names).toEqual([
         "classify_document",
+        "create_extractor",
         "edit_document",
         "extract_data",
+        "generate_edit_schema",
         "get_classifier",
         "get_extractor",
         "get_file",
@@ -105,7 +107,13 @@ describe("tool discovery", () => {
     try {
       const { tools } = await client.listTools();
       const names = tools.map((t) => t.name).sort();
-      expect(names).toEqual(["extract_data", "get_extractor", "list_extractors", "parse_document"]);
+      expect(names).toEqual([
+        "create_extractor",
+        "extract_data",
+        "get_extractor",
+        "list_extractors",
+        "parse_document",
+      ]);
     } finally {
       await close();
     }
