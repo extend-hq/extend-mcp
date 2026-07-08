@@ -118,10 +118,10 @@ Available groups:
 | Group | Tools |
 |---|---|
 | `parse` | `parse_document` |
-| `extract` | `extract_data`, `list_extractors`, `get_extractor` |
+| `extract` | `extract_data`, `create_extractor`, `list_extractors`, `get_extractor` |
 | `classify` | `classify_document`, `list_classifiers`, `get_classifier` |
 | `split` | `split_document`, `list_splitters`, `get_splitter` |
-| `edit` | `edit_document` |
+| `edit` | `generate_edit_schema`, `edit_document` |
 | `files` | `upload_file`, `list_files`, `get_file` |
 
 ## Tools
@@ -142,6 +142,12 @@ Every document processing tool accepts a file via one of:
 **split_document** — Split a multi-document file using a pre-configured splitter (`splitter_id`) or inline config.
 
 **edit_document** — Fill PDF form fields using natural language `instructions` or explicit field values via `config`.
+
+**generate_edit_schema** — Detect fields in a PDF form and return an edit schema. Use before `edit_document` when bootstrapping a schema from an existing form.
+
+### Schema generation
+
+**create_extractor** — Create a new extractor with an inline schema, by cloning an existing extractor, or by auto-generating a schema from 1–5 sample documents (`sample_file_paths`, `sample_file_urls`, or `sample_file_ids` plus optional `generate_instructions`).
 
 ### Configuration discovery
 

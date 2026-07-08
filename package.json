@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.0",
-    "extend-ai": "^1.2.0",
+    "extend-ai": "^1.15.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {
